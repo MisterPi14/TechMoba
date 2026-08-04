@@ -1,0 +1,56 @@
+{
+  // ──────────────────────────────────────────────────────────────────────────
+  // AIF-C01 Capstone — Bootcamp Institute
+  // Entorno de desarrollo reproducible para GitHub Codespaces.
+  // Trae: AWS CLI, Node 20, Python 3.12 + uv, Claude Code y los MCP servers de AWS.
+  // ──────────────────────────────────────────────────────────────────────────
+  "name": "AIF-C01 Capstone — Bootcamp Institute",
+  "image": "mcr.microsoft.com/devcontainers/universal:2-linux",
+
+  "features": {
+    "ghcr.io/devcontainers/features/aws-cli:1": {},
+    "ghcr.io/devcontainers/features/node:1": { "version": "20" },
+    "ghcr.io/devcontainers/features/python:1": { "version": "3.12" }
+  },
+
+  "remoteEnv": {
+    // ── Bedrock como backend de Claude Code ────────────────────────────────
+    "CLAUDE_CODE_USE_BEDROCK": "1",
+    "AWS_REGION": "us-east-1",
+
+    // Modelos confirmados disponibles en la cuenta del bootcamp.
+    // Puedes cambiarlos con /model dentro de Claude Code.
+    "ANTHROPIC_MODEL": "us.anthropic.claude-sonnet-4-6",
+    "ANTHROPIC_SMALL_FAST_MODEL": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+
+    // ── WORKAROUND OBLIGATORIO (bug conocido de Claude Code sobre Bedrock) ──
+    // Con extended thinking activado, Claude Code NO preserva los bloques
+    // `thinking` al re-serializar el historial multi-turn sobre Bedrock, y la
+    // API responde 400: "Expected `thinking`... but found `text`".
+    // Issues: anthropics/claude-code #51985, #20705, #22278.
+    // Desactivar el thinking evita el error. Quita estas dos líneas cuando
+    // Anthropic publique el parche (verifica con `claude --version` / changelog).
+    "MAX_THINKING_TOKENS": "0",
+    "CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING": "1"
+
+    // NOTA: el bearer token de Bedrock NO va aquí. Se inyecta solo, como
+    // GitHub Codespaces Secret llamado AWS_BEARER_TOKEN_BEDROCK.
+    // Ver README.md → "Configura tu acceso a Bedrock".
+  },
+
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "anthropic.claude-code",
+        "amazonwebservices.aws-toolkit-vscode",
+        "ms-python.python",
+        "yzhang.markdown-all-in-one"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  }
+}
