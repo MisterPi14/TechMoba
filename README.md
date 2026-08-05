@@ -1,205 +1,539 @@
-# Capstone AIF-C01 · Bootcamp Institute
+# TechModa Serverless Capstone
 
-Repositorio base para tu **proyecto capstone** del curso de preparación a la certificación
-**AWS Certified AI Practitioner (AIF-C01)**.
+[![Abrir en GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=master&repo=gabanox/techmoda-serverless-capstone-starter)
 
-Aquí construirás —de principio a fin— una solución de **IA Generativa sobre AWS** usando
-**Amazon Bedrock**, aplicando una metodología profesional de **Spec-Driven Development**
-asistida por **Claude Code** y los **MCP servers de AWS**.
-
-> No necesitas instalar nada en tu computadora. Todo corre en **GitHub Codespaces**.
+API de Catálogo de Productos de E-commerce de Moda construida con Tecnologías Serverless de AWS
 
 ---
 
-## 📑 Tabla de contenido
+## 🚀 NUEVO: Despliegue en 10 Minutos
 
-1. [Qué vas a construir](#-qué-vas-a-construir)
-2. [Arranque rápido (5 minutos)](#-arranque-rápido-5-minutos)
-3. [Configura tu acceso a Bedrock](#-configura-tu-acceso-a-bedrock)
-4. [MCP servers de AWS](#-mcp-servers-de-aws)
-5. [Spec-Driven Development](#-spec-driven-development-sdd)
-6. [La skill EPCC (Explore · Plan · Code · Commit)](#-la-skill-epcc)
-7. [Tu flujo de trabajo del capstone](#-tu-flujo-de-trabajo-del-capstone)
-8. [Entregables y rúbrica](#-entregables-y-rúbrica)
-9. [Solución de problemas](#-solución-de-problemas)
+**¿Primera vez aquí?** Las funciones Lambda ya están implementadas y listas para desplegar.
+
+👉 **Lee el [QUICKSTART.md](QUICKSTART.md)** para desplegar en 10 minutos
 
 ---
 
-## 🎯 Qué vas a construir
+## 🎯 Scripts Simplificados para Alumnos
 
-Una aplicación de IA Generativa que demuestre dominio de los 5 dominios del examen AIF-C01:
+Hemos creado scripts simplificados para hacer el despliegue y gestión más fácil:
 
-| Dominio AIF-C01 | Cómo lo cubre el capstone |
-|---|---|
-| 1. Fundamentos de IA/ML | Justificas por qué un foundation model resuelve tu caso (vs ML clásico) |
-| 2. Fundamentos de IA Generativa | Usas Amazon Bedrock con un modelo Claude |
-| 3. Aplicaciones de Foundation Models | Prompt engineering, y opcionalmente RAG con Knowledge Bases |
-| 4. IA Responsable | Documentas sesgos, límites, guardrails y transparencia |
-| 5. Seguridad y Gobernanza | IAM de mínimo privilegio, sin secretos en el código, costos controlados |
-
-La idea (tema libre, lo defines en [`specs/00-capstone-brief.md`](specs/00-capstone-brief.md)):
-un asistente, clasificador, generador o sistema RAG que resuelva un problema **real**.
-
----
-
-## ⚡ Arranque rápido (5 minutos)
-
-1. **Abre el repo en Codespaces**
-   Botón verde **`<> Code`** → pestaña **Codespaces** → **Create codespace on main**.
-   El contenedor instala solo Claude Code, `uv`, AWS CLI y los MCP servers (~2-3 min).
-
-2. **Configura el secret de Bedrock** → ver [sección siguiente](#-configura-tu-acceso-a-bedrock).
-
-3. **Verifica que todo funciona** (en la terminal del Codespace):
-   ```bash
-   aws bedrock list-foundation-models --query 'length(modelSummaries)' --output text
-   claude --version
-   ```
-
-4. **Lanza Claude Code y arranca:**
-   ```bash
-   claude
-   ```
-   Dentro de Claude, escribe `/epcc-explore` para iniciar tu capstone.
-
----
-
-## 🔑 Configura tu acceso a Bedrock
-
-Claude Code en este Codespace usa **Amazon Bedrock** como backend (no la API pública).
-Tu facilitador te entregará un **token de Bedrock** (empieza con `ABSK...`). Guárdalo como
-**Codespaces Secret** —nunca en el código:
-
-1. Ve a **GitHub → Settings → Codespaces → Secrets → New secret**
-   (o directamente: `https://github.com/settings/codespaces`).
-2. Crea el secret:
-   - **Name:** `AWS_BEARER_TOKEN_BEDROCK`
-   - **Value:** el token `ABSK...` que te dieron
-   - **Repository access:** selecciona `gabanox/aif-capstone`
-3. Si el Codespace ya estaba abierto, **recréalo o reinícialo** para que tome el secret.
-
-> 🔒 **Regla de oro:** el token es una credencial. No lo pegues en archivos, ni en commits,
-> ni en mensajes de chat. Si lo expones por error, avisa a tu facilitador para rotarlo.
-
-Verifica el acceso:
+### Desplegar Todo (Backend + Frontend)
 ```bash
-echo $AWS_BEARER_TOKEN_BEDROCK | cut -c1-8   # debe imprimir: ABSKYmVk
-aws bedrock list-foundation-models --query 'modelSummaries[?contains(modelId,`claude`)].modelId' --output text
+./scripts/deploy-all.sh
+```
+Este script hace TODO automáticamente:
+- ✅ Construye el backend (SAM)
+- ✅ Despliega el backend a AWS
+- ✅ Construye el frontend (React)
+- ✅ Despliega el frontend a S3/CloudFront
+- ✅ Te muestra las URLs al finalizar
+
+### Ver Estado del Despliegue
+```bash
+./scripts/status.sh
+```
+Muestra:
+- Estado actual del stack
+- URLs de API y Frontend
+- Número de productos en la base de datos
+- Comandos útiles
+
+### Eliminar Todos los Recursos
+```bash
+./scripts/delete-all.sh
+```
+Elimina TODO para evitar cargos:
+- API Gateway
+- Funciones Lambda
+- Tabla DynamoDB
+- Bucket S3 y CloudFront
+
+**💡 Recomendación**: Usa estos scripts para una experiencia más simple y directa.
+
+---
+
+## Inicio Rápido con GitHub Codespaces
+
+**Recomendado**: Usa GitHub Codespaces para un entorno de desarrollo preconfigurado con AWS CLI, SAM CLI y Node.js 18.x ya instalados.
+
+1. Haz clic en el botón **"Abrir en GitHub Codespaces"** arriba
+2. Espera a que el entorno se construya (2-3 minutos)
+3. **Configura las credenciales de AWS** - Consulta [AWS_CREDENTIALS_SETUP.md](AWS_CREDENTIALS_SETUP.md) para instrucciones detalladas
+4. Sigue la [Guía de Implementación](#guía-de-implementación) a continuación
+
+### Configuración de Credenciales de AWS
+
+Antes de desplegar, debes configurar las credenciales de AWS en GitHub:
+
+1. Ve a la **Configuración** de tu repositorio → **Secrets and variables** → **Codespaces**
+2. Agrega tres secretos:
+   - `AWS_ACCESS_KEY_ID` - Tu clave de acceso de AWS
+   - `AWS_SECRET_ACCESS_KEY` - Tu clave secreta de AWS
+   - `AWS_DEFAULT_REGION` - Tu región de AWS (ej., `us-east-1`)
+3. Reconstruye tu Codespace para cargar las credenciales
+
+Para instrucciones detalladas paso a paso con capturas de pantalla, consulta **[AWS_CREDENTIALS_SETUP.md](AWS_CREDENTIALS_SETUP.md)**.
+
+## Descripción General
+
+TechModa es una API REST serverless para gestionar un catálogo de productos de e-commerce de moda. Este proyecto capstone demuestra dominio de patrones de arquitectura serverless de AWS utilizando Lambda, API Gateway y DynamoDB.
+
+### Objetivos de Aprendizaje
+
+Al completar este proyecto, podrás:
+
+- Diseñar arquitecturas serverless usando Lambda, API Gateway y DynamoDB
+- Implementar APIs RESTful con métodos HTTP apropiados y códigos de estado
+- Desplegar infraestructura como código usando AWS SAM
+- Probar APIs manualmente usando curl e interpretar respuestas
+- Depurar aplicaciones serverless usando CloudWatch Logs y X-Ray
+- Estimar y gestionar costos de AWS para aplicaciones serverless
+- Usar herramientas de IA efectivamente (Claude Code) para acelerar el desarrollo
+- Documentar proyectos técnicos para propósitos de portafolio
+- Seguir las mejores prácticas de AWS para seguridad y observabilidad
+
+## Arquitectura
+
+```
+┌─────────────┐      ┌─────────────┐      ┌─────────────┐      ┌─────────────┐
+│   Cliente   │─────▶│ API Gateway │─────▶│   Lambda    │─────▶│  DynamoDB   │
+│  (curl/     │◀─────│   (REST)    │◀─────│ (Node.js)   │◀─────│   (NoSQL)   │
+│  navegador) │      └─────────────┘      └─────────────┘      └─────────────┘
+└─────────────┘              │                     │
+                             │                     │
+                             ▼                     ▼
+                      ┌─────────────┐      ┌─────────────┐
+                      │  CloudWatch │      │   X-Ray     │
+                      │    Logs     │      │   Tracing   │
+                      └─────────────┘      └─────────────┘
 ```
 
-Detalle técnico y modelos disponibles: [`docs/CODESPACES-BEDROCK.md`](docs/CODESPACES-BEDROCK.md).
+### Componentes
 
----
+- **API Gateway**: API REST con 5 endpoints para operaciones CRUD
+- **Lambda Functions**: 5 funciones Node.js 18.x (ListItems, CreateItem, GetItem, UpdateItem, DeleteItem)
+- **DynamoDB**: Base de datos NoSQL con facturación PAY_PER_REQUEST
+- **CloudWatch**: Registro centralizado para ejecución de Lambda
+- **X-Ray**: Rastreo distribuido para observabilidad de rendimiento
 
-## 🧩 MCP servers de AWS
+Para documentación detallada de arquitectura, consulta [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
-Los **MCP servers** le dan a Claude Code "herramientas" para consultar AWS en tiempo real
-(documentación oficial, diagramas de arquitectura, costos, CDK). Ya vienen **preconfigurados**
-en [`.mcp.json`](.mcp.json) y se instalan solos vía `uv`.
+## Prerequisitos
 
-| MCP server | Para qué sirve | ¿Requiere credenciales? |
-|---|---|---|
-| `aws-documentation` | Buscar y citar documentación oficial de AWS | No |
-| `aws-diagram` | Generar diagramas de arquitectura desde tu diseño | No |
-| `aws-cdk` | Ayuda con infraestructura como código (CDK) | No |
-| `aws-pricing` | Estimar costos de tu arquitectura | Sí (tu token Bedrock/AWS) |
+Antes de comenzar, asegúrate de tener:
 
-Al lanzar `claude`, acepta los MCP servers cuando lo pregunte. Verifica con `/mcp` dentro
-de Claude Code. Guía completa (y servers opcionales como Bedrock Knowledge Bases para RAG):
-[`docs/MCP-SETUP.md`](docs/MCP-SETUP.md).
+- **Cuenta de AWS** con permisos apropiados
+- **AWS CLI v2** instalado y configurado ([Guía de Instalación](docs/prompts/01_ENVIRONMENT_SETUP.md))
+- **AWS SAM CLI** instalado ([Guía de Instalación](docs/prompts/01_ENVIRONMENT_SETUP.md))
+- **Node.js 18.x** o posterior
+- **Git** para control de versiones
+- **Conocimiento básico** de JavaScript, APIs REST y servicios de AWS
 
----
+## Guía de Implementación
 
-## 📐 Spec-Driven Development (SDD)
+**🚀 Opción Rápida**: Si quieres desplegar todo de una vez, usa `./scripts/deploy-all.sh` (ver [Scripts Simplificados](#-scripts-simplificados-para-alumnos) arriba)
 
-No empieces tirando código. En SDD primero **especificas** (requisitos → diseño → tareas) y
-recién después implementas. Esto es lo que evalúa un capstone profesional.
+**📚 Opción Paso a Paso**: Sigue esta guía para entender cada paso del proceso
 
-```
-  IDEA  →  REQUISITOS  →  DISEÑO  →  TAREAS  →  CÓDIGO  →  VALIDACIÓN
-          (qué/por qué)  (cómo)    (pasos)   (implementar)
-```
+### 1. Clonar el Repositorio
 
-Las plantillas están en [`templates/`](templates/). Copia cada una a tu carpeta `specs/`
-a medida que avanzas:
-
-| Plantilla | Qué documentas |
-|---|---|
-| [`templates/01-requirements.md`](templates/01-requirements.md) | Requisitos en formato EARS (qué debe hacer y por qué) |
-| [`templates/02-design.md`](templates/02-design.md) | Arquitectura AWS, modelo Bedrock, datos, IA responsable |
-| [`templates/03-tasks.md`](templates/03-tasks.md) | Plan de tareas verificable |
-
-Guía conceptual completa: [`docs/SPEC-DRIVEN-DEVELOPMENT.md`](docs/SPEC-DRIVEN-DEVELOPMENT.md).
-
----
-
-## 🔄 La skill EPCC
-
-**EPCC = Explore · Plan · Code · Commit.** Es el flujo de trabajo recomendado por Anthropic
-para usar Claude Code de forma disciplinada, y mapea 1:1 con Spec-Driven Development.
-
-Este repo **ya incluye** los comandos EPCC en [`.claude/commands/`](.claude/commands/), así que
-funcionan apenas abres el Codespace —sin instalar nada. Dentro de `claude`:
-
-| Comando | Fase | Qué hace |
-|---|---|---|
-| `/epcc-explore` | **Explore** | Investiga el problema, AWS y el código. NO escribe código todavía. |
-| `/epcc-plan` | **Plan** | Genera tus specs: requisitos, diseño y tareas. |
-| `/epcc-code` | **Code** | Implementa siguiendo el plan, tarea por tarea. |
-| `/epcc-commit` | **Commit** | Commit limpio + actualiza documentación. |
-
-### Instalar EPCC desde cero (en otros proyectos)
-
-Si quieres EPCC en cualquier proyecto tuyo, no solo en este repo, ver la guía paso a paso:
-[`docs/EPCC-WORKFLOW.md`](docs/EPCC-WORKFLOW.md) → *"Instalar EPCC desde cero"*.
-
----
-
-## 🛠 Tu flujo de trabajo del capstone
+**Nota**: Si usas Codespaces, omite este paso - el repositorio ya está clonado.
 
 ```bash
-claude            # lanza Claude Code en el Codespace
+git clone <repository-url>
+cd techmoda-serverless-capstone-starter
 ```
 
-1. **`/epcc-explore`** — Define tu idea. Claude investiga el caso y los servicios AWS.
-   → Llenas [`specs/00-capstone-brief.md`](specs/00-capstone-brief.md).
-2. **`/epcc-plan`** — Claude te ayuda a escribir `specs/01-requirements.md`, `02-design.md`
-   y `03-tasks.md` a partir de las plantillas.
-3. **`/epcc-code`** — Implementas tarea por tarea. Usa los MCP de AWS para docs y diagramas.
-4. **`/epcc-commit`** — Commits atómicos con buenos mensajes.
-5. Repite Code→Commit hasta terminar. Valida contra tu rúbrica.
+### 2. Revisar la Estructura del Proyecto
 
-> 💡 Recuerda el [gate de FinOps](docs/SPEC-DRIVEN-DEVELOPMENT.md#-costos-gate-de-finops): estima
-> costos **antes** de desplegar. La cuenta del bootcamp es compartida.
+```
+techmoda-serverless-capstone-starter/
+├── template.yaml              # Plantilla SAM (infraestructura como código)
+├── functions/                 # Código fuente de funciones Lambda
+│   ├── list-items/           # GET /products
+│   ├── create-item/          # POST /products
+│   ├── get-item/             # GET /products/{id}
+│   ├── update-item/          # PUT /products/{id}
+│   └── delete-item/          # DELETE /products/{id}
+├── frontend/                  # Frontend React (opcional)
+├── docs/                      # Documentación
+│   ├── specs/                # Especificaciones detalladas de funciones
+│   └── prompts/              # Plantillas de prompts para Claude Code
+├── scripts/                   # Scripts auxiliares de despliegue
+│   ├── build.sh              # Construir la aplicación SAM
+│   ├── deploy.sh             # Desplegar a AWS
+│   ├── delete.sh             # Limpiar recursos
+│   ├── build-frontend.sh     # Construir el frontend
+│   └── deploy-frontend.sh    # Desplegar frontend a S3
+└── README.md                  # Este archivo
+```
+
+### 3. Implementar las Funciones Lambda
+
+Cada función Lambda en el directorio `functions/` contiene código de marcador con comentarios TODO. Sigue estos pasos:
+
+1. **Lee la especificación** de cada función en `docs/specs/`
+2. **Usa las plantillas de prompts** en `docs/prompts/02_LAMBDA_IMPLEMENTATION.md` con Claude Code
+3. **Implementa la lógica de negocio** siguiendo el enfoque de desarrollo guiado por especificaciones
+4. **Prueba localmente** (opcional) o despliega y prueba en AWS
+
+Consulta [CAPSTONE_OVERVIEW.md](CAPSTONE_OVERVIEW.md) para orientación detallada de implementación.
+
+### 4. Construir la Aplicación
+
+```bash
+# Usando el script auxiliar
+./scripts/build.sh
+
+# O directamente con SAM CLI
+sam build
+```
+
+Este comando:
+- Instala las dependencias de Node.js para cada función
+- Prepara el paquete de despliegue
+- Crea el directorio `.aws-sam/build/`
+
+### 5. Desplegar a AWS
+
+#### Primer Despliegue (Guiado)
+
+```bash
+# Usando el script auxiliar
+./scripts/deploy.sh
+
+# O directamente con SAM CLI
+sam deploy --guided
+```
+
+**IMPORTANTE**: Se te harán varias preguntas. Usa estos valores:
+
+```
+Stack Name [techmoda-capstone]: tu-nombre-con-guiones-medios
+AWS Region [us-east-1]:
+#Shows you resources changes to be deployed and require a 'Y' to initiate deploy
+Confirm changes before deploy [Y/n]: y
+#SAM needs permission to be able to create roles to connect to the resources in your template
+Allow SAM CLI IAM role creation [Y/n]: y
+#Preserves the state of previously provisioned resources when an operation fails
+Disable rollback [y/N]: y
+ListItemsFunction has no authentication. Is this okay? [y/N]: y
+CreateItemFunction has no authentication. Is this okay? [y/N]: y
+GetItemFunction has no authentication. Is this okay? [y/N]: y
+UpdateItemFunction has no authentication. Is this okay? [y/N]: y
+DeleteItemFunction has no authentication. Is this okay? [y/N]: y
+Save arguments to configuration file [Y/n]: y
+SAM configuration file [samconfig.toml]:
+SAM configuration environment [default]:
+```
+
+**Notas**:
+- **Stack Name**: Reemplaza `tu-nombre-con-guiones-medios` con tu nombre real usando guiones (ej., `juan-perez`, `maria-garcia`)
+- **AWS Region**: Presiona Enter para usar el valor predeterminado `us-east-1` (o ingresa tu región preferida)
+- **Advertencias de no autenticación**: Esto es esperado para este proyecto educativo (no estamos usando API keys o Cognito)
+
+#### Despliegues Subsiguientes
+
+```bash
+# Usando el script auxiliar
+./scripts/deploy.sh
+
+# O directamente con SAM CLI
+sam deploy
+```
+
+### 6. Probar tu API
+
+Después del despliegue, recibirás una URL de API en las salidas:
+
+```
+Outputs:
+  ApiUrl: https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/Prod
+```
+
+Copia esta URL y prueba tus endpoints usando curl. Consulta [docs/TESTING_GUIDE.md](docs/TESTING_GUIDE.md) para instrucciones completas de prueba.
+
+**Ejemplo de prueba rápida:**
+
+```bash
+# Configura tu URL de API
+export API_URL="https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/Prod"
+
+# Crea un producto
+curl -X POST $API_URL/products \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Classic Denim Jacket",
+    "description": "Timeless blue denim jacket",
+    "price": 79.99,
+    "category": "Outerwear",
+    "imageUrl": "https://example.com/jacket.jpg"
+  }'
+
+# Lista todos los productos
+curl $API_URL/products
+```
+
+### 7. Ver Logs de CloudWatch
+
+Para debugging y monitoreo, puedes ver los logs de tus funciones Lambda:
+
+#### Ver todos los logs (últimos 10 minutos)
+```bash
+./scripts/logs.sh
+```
+
+#### Ver logs de una función específica
+```bash
+./scripts/logs.sh list      # ListItemsFunction
+./scripts/logs.sh create    # CreateItemFunction
+./scripts/logs.sh get       # GetItemFunction
+./scripts/logs.sh update    # UpdateItemFunction
+./scripts/logs.sh delete    # DeleteItemFunction
+```
+
+#### Live tail (seguir logs en tiempo real)
+```bash
+./scripts/logs.sh --tail              # Todas las funciones
+./scripts/logs.sh create --tail       # Solo create-item
+```
+
+#### Ver solo errores
+```bash
+./scripts/logs.sh --errors            # Todos los errores
+./scripts/logs.sh --since 1h --errors # Errores de la última hora
+```
+
+#### Filtrar logs por patrón
+```bash
+./scripts/logs.sh --filter "product"
+./scripts/logs.sh list --filter "404"
+```
+
+**Ejemplos útiles para debugging:**
+
+```bash
+# Ver errores recientes
+./scripts/logs.sh --errors --since 30m
+
+# Monitorear en vivo mientras pruebas
+./scripts/logs.sh --tail
+
+# Buscar un producto específico en los logs
+./scripts/logs.sh --filter "productId"
+
+# Ver logs de una función problemática
+./scripts/logs.sh create --tail --errors
+```
+
+**Nota**: Presiona `Ctrl+C` para salir del modo tail.
+
+Consulta [scripts/README.md](scripts/README.md) para más opciones y ejemplos.
+
+### 8. Construir y Desplegar el Frontend (Opcional)
+
+El capstone incluye un frontend React para visualizar y gestionar productos.
+
+#### Construir el Frontend
+
+```bash
+./scripts/build-frontend.sh
+```
+
+Esto:
+- Instalará las dependencias del frontend
+- Construirá el bundle de producción
+- Generará archivos estáticos en `frontend/dist/`
+
+#### Desplegar Frontend a S3
+
+Después de desplegar el backend (paso 5), despliega el frontend:
+
+```bash
+./scripts/deploy-frontend.sh
+```
+
+Esto:
+- Obtendrá la URL de API de las salidas de CloudFormation
+- Reemplazará el marcador de URL de API en los archivos construidos
+- Subirá el frontend a S3
+- Mostrará la URL de CloudFront
+
+**Accede a tu frontend**: Usa la URL de CloudFront de la salida.
+
+**Nota**: El despliegue de la distribución de CloudFront puede tardar 15-20 minutos. Si obtienes un error "Not Found" inmediatamente después del despliegue, espera unos minutos e intenta de nuevo.
+
+#### Desarrollo Local del Frontend
+
+Para ejecutar el frontend localmente:
+
+1. Crea un archivo `.env` en el directorio `frontend/`:
+   ```bash
+   cd frontend
+   cp .env.example .env
+   ```
+
+2. Actualiza `.env` con tu URL de API:
+   ```
+   VITE_API_URL=https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/Prod
+   ```
+
+3. Instala las dependencias y ejecuta:
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+4. Abre tu navegador en la URL mostrada (típicamente http://localhost:5173)
+
+Consulta [frontend/README.md](frontend/README.md) para más detalles.
+
+### 8. Limpiar Recursos
+
+**IMPORTANTE**: Para evitar cargos de AWS, elimina tu stack después de probar:
+
+```bash
+# Opción 1: Script simplificado (RECOMENDADO)
+./scripts/delete-all.sh
+
+# Opción 2: Script original
+./scripts/delete.sh
+
+# Opción 3: Directamente con SAM CLI
+sam delete --stack-name techmoda-capstone
+```
+
+**Nota**: Esto eliminará la API, funciones Lambda, tabla DynamoDB, bucket S3 y distribución CloudFront.
+
+Consulta [docs/COST_AND_CLEANUP.md](docs/COST_AND_CLEANUP.md) para estimaciones de costos y mejores prácticas de limpieza.
+
+## Documentación
+
+### Documentación Principal
+- [CAPSTONE_OVERVIEW.md](CAPSTONE_OVERVIEW.md) - Descripción del proyecto y requisitos de entrega
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - Arquitectura detallada y descripciones de componentes
+- [docs/TESTING_GUIDE.md](docs/TESTING_GUIDE.md) - Instrucciones completas de prueba con ejemplos curl
+- [docs/COST_AND_CLEANUP.md](docs/COST_AND_CLEANUP.md) - Estimación de costos y procedimientos de limpieza
+
+### Especificaciones de Funciones Lambda
+- [docs/specs/LIST_ITEMS_SPEC.md](docs/specs/LIST_ITEMS_SPEC.md) - Listar todos los productos
+- [docs/specs/CREATE_ITEM_SPEC.md](docs/specs/CREATE_ITEM_SPEC.md) - Crear un nuevo producto
+- [docs/specs/GET_ITEM_SPEC.md](docs/specs/GET_ITEM_SPEC.md) - Obtener un producto por ID
+- [docs/specs/UPDATE_ITEM_SPEC.md](docs/specs/UPDATE_ITEM_SPEC.md) - Actualizar un producto existente
+- [docs/specs/DELETE_ITEM_SPEC.md](docs/specs/DELETE_ITEM_SPEC.md) - Eliminar un producto
+
+### Plantillas de Prompts (Para Claude Code)
+- [docs/prompts/01_ENVIRONMENT_SETUP.md](docs/prompts/01_ENVIRONMENT_SETUP.md) - Instalación de AWS CLI y SAM
+- [docs/prompts/02_LAMBDA_IMPLEMENTATION.md](docs/prompts/02_LAMBDA_IMPLEMENTATION.md) - Implementaciones de funciones Lambda
+- [docs/prompts/03_DEPLOYMENT.md](docs/prompts/03_DEPLOYMENT.md) - Construcción y despliegue
+- [docs/prompts/04_TESTING.md](docs/prompts/04_TESTING.md) - Pruebas de API con curl
+- [docs/prompts/05_DEBUGGING.md](docs/prompts/05_DEBUGGING.md) - Solución de problemas comunes
+- [docs/prompts/06_OPERATIONS.md](docs/prompts/06_OPERATIONS.md) - Gestión de costos y limpieza
+
+## Solución de Problemas
+
+### Problemas Comunes
+
+**Fallos de Construcción**
+- Asegúrate de que Node.js 18.x esté instalado: `node --version`
+- Verifica que package.json exista en cada directorio de función
+- Elimina la carpeta `.aws-sam` y reconstruye: `rm -rf .aws-sam && sam build`
+
+**Fallos de Despliegue**
+- Verifica las credenciales de AWS: `aws sts get-caller-identity`
+- Verifica los permisos IAM para CloudFormation, Lambda, API Gateway, DynamoDB
+- Revisa los eventos de CloudFormation en la Consola de AWS para errores específicos
+
+**Errores de API (404, 500)**
+- **Ver los logs**: `./scripts/logs.sh --errors --since 1h`
+- **Monitorear en vivo**: `./scripts/logs.sh --tail` mientras haces requests
+- Verifica que la variable de entorno `PRODUCTS_TABLE` esté configurada correctamente
+- Asegúrate de que la tabla DynamoDB exista: `aws dynamodb list-tables`
+- Revisa los rastros de X-Ray en la Consola de AWS
+
+**Errores de Permisos**
+- Verifica que las políticas IAM de la plantilla SAM coincidan con los requisitos de la función
+- Verifica que el rol de ejecución de Lambda tenga permisos de DynamoDB
+- Asegúrate de que CloudFormation tenga CAPABILITY_IAM
+
+Para guía detallada de depuración, consulta [docs/prompts/05_DEBUGGING.md](docs/prompts/05_DEBUGGING.md)
+
+## Endpoints de API
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET | /products | Listar todos los productos |
+| POST | /products | Crear un nuevo producto |
+| GET | /products/{id} | Obtener un producto por ID |
+| PUT | /products/{id} | Actualizar un producto existente |
+| DELETE | /products/{id} | Eliminar un producto |
+
+## Esquema de Datos
+
+### Objeto Producto
+
+```json
+{
+  "productId": "string (UUID)",
+  "name": "string (requerido)",
+  "description": "string",
+  "price": "number (requerido)",
+  "category": "string",
+  "imageUrl": "string (URL)",
+  "createdAt": "string (marca de tiempo ISO 8601)",
+  "updatedAt": "string (marca de tiempo ISO 8601)"
+}
+```
+
+## Requisitos de Entrega
+
+Para este proyecto capstone, debes entregar:
+
+1. **URL del Repositorio GitHub** con:
+   - Plantilla SAM completa (template.yaml)
+   - Las 5 funciones Lambda implementadas
+   - README con diagrama de arquitectura e instrucciones de despliegue
+   - Ejemplos de prueba curl funcionales
+
+2. **Diagrama de Arquitectura** (en README o archivo separado)
+
+3. **Evidencia de Implementación Funcional** (capturas de pantalla opcionales o salida de curl)
+
+Consulta [CAPSTONE_OVERVIEW.md](CAPSTONE_OVERVIEW.md) para criterios completos de entrega y evaluación.
+
+## Estimación de Costos
+
+Costos esperados de AWS para este proyecto capstone: **Menos de $1 USD**
+
+Esto asume:
+- Desarrollo y pruebas durante 1-2 días
+- Aproximadamente 50-100 solicitudes de API
+- Todos los servicios dentro de los límites de AWS Free Tier
+
+**IMPORTANTE**: Elimina tu stack inmediatamente después de probar para evitar cargos continuos.
+
+Para desglose detallado de costos, consulta [docs/COST_AND_CLEANUP.md](docs/COST_AND_CLEANUP.md)
+
+## Recursos
+
+- [Documentación de AWS SAM](https://docs.aws.amazon.com/serverless-application-model/)
+- [Guía del Desarrollador de AWS Lambda](https://docs.aws.amazon.com/lambda/)
+- [Guía del Desarrollador de DynamoDB](https://docs.aws.amazon.com/dynamodb/)
+- [Documentación de API Gateway REST API](https://docs.aws.amazon.com/apigateway/)
+
+## Licencia
+
+Este proyecto está licenciado bajo la Licencia MIT - consulta el archivo [LICENSE](LICENSE) para más detalles.
+
+## Soporte
+
+Para preguntas o problemas:
+1. Revisa la documentación en `docs/`
+2. Consulta las plantillas de prompts en `docs/prompts/`
+3. Consulta a tu instructor de bootcamp
+4. Revisa los CloudWatch Logs para detalles de errores
 
 ---
 
-## 📦 Entregables y rúbrica
-
-Al final, tu repo (un fork o tu propia copia) debe contener:
-
-- [ ] `specs/00-capstone-brief.md` — idea y caso de uso
-- [ ] `specs/01-requirements.md` — requisitos EARS
-- [ ] `specs/02-design.md` — arquitectura + diagrama + decisiones de IA responsable/seguridad
-- [ ] `specs/03-tasks.md` — plan de tareas (todas marcadas ✓)
-- [ ] Código funcional que invoca Bedrock
-- [ ] `README` de tu proyecto explicando cómo ejecutarlo
-- [ ] Historial de commits limpio (evidencia del flujo EPCC)
-
-Rúbrica detallada y criterios de evaluación: [`specs/00-capstone-brief.md`](specs/00-capstone-brief.md).
-
----
-
-## 🩺 Solución de problemas
-
-| Síntoma | Causa / Solución |
-|---|---|
-| `API Error: 400 ... Expected 'thinking'... but found 'text'` | Bug de Claude Code sobre Bedrock. El `devcontainer.json` ya lo mitiga con `MAX_THINKING_TOKENS=0`. Si lo ves, reinicia el Codespace. Detalle: [`docs/CODESPACES-BEDROCK.md`](docs/CODESPACES-BEDROCK.md). |
-| `is not available for this account` al usar un modelo | Ese modelo no está habilitado en la cuenta. Usa `/model` y elige uno disponible (sonnet-4-6, opus-4-5, haiku-4-5). |
-| `Unable to locate credentials` | Falta el secret `AWS_BEARER_TOKEN_BEDROCK`. Configúralo y reinicia el Codespace. |
-| `/mcp` no muestra los servers | `uv` no quedó en el PATH. Corre `source ~/.bashrc` y reinicia `claude`. |
-| `claude: command not found` | Re-corre `bash .devcontainer/post-create.sh`. |
-
----
-
-<sub>Bootcamp Institute · Preparación AWS Certified AI Practitioner (AIF-C01)</sub>
+**¡Buena suerte con tu proyecto capstone!** 🚀

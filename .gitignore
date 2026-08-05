@@ -1,38 +1,28 @@
-# ──────────────────────────────────────────────────────────────────────────────
-# Seguridad — NUNCA commitees credenciales
-# ──────────────────────────────────────────────────────────────────────────────
-.env
-.env.*
-*.pem
-*.key
-.aws/
-aws-credentials*
-**/credentials
-*bearer*token*
-secrets.json
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Dependencias / build
-# ──────────────────────────────────────────────────────────────────────────────
+# Node.js
 node_modules/
-dist/
-build/
-__pycache__/
-*.pyc
-.venv/
-venv/
-.uv/
-cdk.out/
+npm-debug.log
+yarn-error.log
+package-lock.json
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Editor / OS
-# ──────────────────────────────────────────────────────────────────────────────
-.DS_Store
+# AWS SAM
+.aws-sam/
+samconfig.toml
+
+# Environment variables
+.env
+.env.local
+
+# IDE
+.vscode/
 .idea/
 *.swp
+*.swo
+*~
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Claude Code — estado local de sesión (no compartas tu historial)
-# ──────────────────────────────────────────────────────────────────────────────
-.claude/settings.local.json
-.claude/.sessions/
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
