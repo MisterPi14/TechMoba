@@ -36,6 +36,7 @@ campo `aiLabels`.
 ```bash
 # Subir una foto de ejemplo al bucket de assets y apuntar el producto a ella:
 aws s3 cp ./mi-vestido.jpg s3://techmoda-ai-frontend/assets/vestido.jpg
+aws s3 cp ./dress.jpg s3://techmoda-ai-diego-pina-diego-pina-frontend-281248178297/assets/vestido.jpg
 # luego, PUT al producto con imageUrl = s3://techmoda-ai-frontend/assets/vestido.jpg
 ```
 

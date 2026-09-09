@@ -124,8 +124,26 @@ el **2026-06-17**:
    - El stack crea un rol de ejecución de mínimo privilegio **por Lambda**; sin ese permiso el deploy
      falla y CloudFormation revierte el stack entero. Ver [`docs/SANDBOX-COMPAT.md`](docs/SANDBOX-COMPAT.md) §2.
    - Región de trabajo: **`us-east-1`** (Norte de Virginia). Podés cambiarla: nada está atado a la región.
+
+aws sts get-caller-identity
+ROLE=$(aws sts get-caller-identity --query Arn --output text \
+       | sed 's|:sts:|:iam:|; s|assumed-role/\([^/]*\)/.*|role/\1|')
+aws iam simulate-principal-policy --policy-source-arn "$ROLE" \
+  --action-names iam:CreateRole iam:PutRolePolicy iam:AttachRolePolicy \
+  --query 'EvaluationResults[].[EvalActionName,EvalDecision]' --output text
+
+
 2. Herramientas: **AWS SAM CLI**, **AWS CLI v2**, **Node.js 22+**, **Python 3.12** (tiene que coincidir
    con el `Runtime` de las Lambdas de IA), **git**. El devcontainer de este repo las trae fijadas.
+
+# 1) SAM CLI — instalador oficial para Linux arm64 (esta maquina es aarch64)
+cd /tmp
+curl -L -o aws-sam-cli.zip \
+  https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-arm64.zip
+unzip -q aws-sam-cli.zip -d sam-installation
+sudo ./sam-installation/install          # si ya estaba: sudo ./sam-installation/install --update
+sam --version                            # verificacion
+
 3. **Acceso a modelos de Bedrock** habilitado para S6–S9:
    Consola → **Amazon Bedrock → Model access** → habilitar los modelos que uses (Anthropic Claude Haiku
    y Amazon Titan Embeddings). Es un setting **por región**: habilitalo en la región del deploy.

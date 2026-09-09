@@ -33,10 +33,8 @@ const { handler: deleteItem } = require('../delete-item/index.js');
 
 const CORS_HEADERS = {
   'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
-  'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
 };
+// CORS headers are handled by FunctionUrlConfig in SAM template, not here
 
 const json = (statusCode, payload) => ({
   statusCode,

@@ -17,6 +17,7 @@ editar guías o agregar sesiones; el código y los identificadores están en ing
 # Validación completa paso por paso (lo primero que hay que correr)
 bash scripts/validate-all.sh --static    # todo lo que no necesita AWS
 bash scripts/validate-all.sh             # + pruebas contra el stack desplegado
+bash scripts/validate-all.sh --aws       # solo las pruebas contra AWS
 
 # Validar templates suelto
 sam validate --lint -t template.yaml
@@ -39,6 +40,11 @@ Para desarrollo local del frontend contra un backend ya desplegado: `cp frontend
 frontend/.env` y pegá la salida `ApiUrl` del stack en `VITE_API_URL`.
 
 No hay tests de Python; las Lambdas de IA se validan con el `curl` de cada `GUIA.md`.
+
+El `python3` local **tiene que ser 3.12** (es el `Runtime:` de las Lambdas de IA): con otra versión
+`sam build` falla con un error de `PythonPipBuilder` difícil de interpretar. La versión está fijada en
+`.devcontainer/devcontainer.json` — si no coincide, reconstruí el devcontainer en vez de tocar los
+templates. `validate-all.sh --static` lo chequea antes que nada.
 
 ## Arquitectura
 
@@ -66,6 +72,16 @@ los 5 handlers CRUD sin duplicar lógica. Parsea el payload v2.0 de Function URL
 (`requestContext.http.method`, `rawPath`, body base64) y reconstruye `pathParameters.id`. Con una sola
 base URL el frontend (`frontend/src/lib/api.ts`) no cambia.
 
+**Dónde vive el código de cada capa** (no hay un directorio central de Lambdas):
+
+- `functions/` → solo el CRUD base de S0, Node.js: los 5 handlers + `router/`.
+- `sessions/SNN-<slug>/functions/<nombre>/app.py` → la Lambda de IA de esa sesión, junto a su
+  `requirements.txt`, su `GUIA.md` y su `template-snippet.yaml`. `template.full.yaml` la referencia
+  con `CodeUri: sessions/SNN-.../functions/<nombre>` — así el snippet que pega el estudiante y el
+  template completo apuntan al mismo archivo. Para editar una feature de IA, editá dentro de
+  `sessions/`, y si cambiás el nombre del directorio hay que actualizar el `CodeUri` en los dos lados.
+- `ai/seed/` → los 4 productos de ejemplo y el script que los siembra.
+
 **Tres templates, elegí según el caso:**
 
 | Template | Contenido | Cuándo |
@@ -76,7 +92,7 @@ base URL el frontend (`frontend/src/lib/api.ts`) no cambia.
 
 ## Despliegue
 
-Región **us-east-1**, stack **`techmoda-ai`**. Requiere una cuenta donde puedas **crear roles IAM**
+Región **us-east-1**, stack **`techmoda-ai-diego-pina`** (siempre este nombre). Requiere una cuenta donde puedas **crear roles IAM**
 (`iam:CreateRole`): el stack crea uno de mínimo privilegio por Lambda. Verificá primero que estás
 autenticado (`aws sts get-caller-identity`) y corré `bash scripts/validate-all.sh --static`.
 
@@ -97,7 +113,7 @@ que CloudFront propaga (mientras tanto la API ya responde por `curl`).
 pasa las flags explícitas. Las capabilities **no son opcionales**:
 
 ```bash
-sam deploy --stack-name techmoda-ai --region us-east-1 \
+sam deploy --stack-name techmoda-ai-diego-pina --region us-east-1 \
   --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND \
   --resolve-s3 --no-confirm-changeset
 ```
@@ -115,7 +131,7 @@ Elegí el template según el caso (ver la tabla en Arquitectura). Con `template.
 
 ```bash
 sam build -t template.full.yaml
-sam deploy -t template.full.yaml --stack-name techmoda-ai --region us-east-1 \
+sam deploy -t template.full.yaml --stack-name techmoda-ai-diego-pina --region us-east-1 \
   --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND --resolve-s3 --no-confirm-changeset
 ```
 
@@ -140,7 +156,7 @@ los 4 productos (`ai/seed/seed-products.sh`) e imprime las Function URLs. Si el 
 
 ```bash
 bash scripts/status.sh
-API=$(aws cloudformation describe-stacks --stack-name techmoda-ai --region us-east-1 \
+API=$(aws cloudformation describe-stacks --stack-name techmoda-ai-diego-pina --region us-east-1 \
        --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" --output text)
 curl -s "${API%/}/products" | python3 -m json.tool    # debe listar los 4 productos
 ```
@@ -177,6 +193,41 @@ Checklist en `docs/IAM.md`. En resumen:
 - Output de la URL: `!GetAtt <LogicalId>FunctionUrl.FunctionUrl` (SAM crea el recurso `<LogicalId>Url`).
 - Cada `GUIA.md` cierra con estimación de costo (marcada *verificar contra precios oficiales*) y
   bloque de cleanup.
+
+## Dónde buscar antes de preguntar
+
+| Ruta | Qué contiene |
+|---|---|
+| `docs/IAM.md` | políticas por función + checklist para agregar una nueva (leer antes de tocar templates) |
+| `docs/ARCHITECTURE.md` | diagrama y flujo de datos completo |
+| `docs/SANDBOX-COMPAT.md` | qué falla en cuentas restringidas y por qué (§2 = `iam:CreateRole`) |
+| `docs/COST_AND_CLEANUP.md` | costo por sesión y cleanup |
+| `docs/RUNTIME_CONFIG.md` | cómo llega `ApiUrl` al frontend en runtime (`env-config.js`) |
+| `docs/specs/` | contrato de cada handler CRUD (request/response) |
+| `docs/prompts/` | plantillas de prompts que el estudiante usa con Claude Code, por fase (entorno → operación) |
+| `instructor/` | guía del instructor, notas de solución y rúbrica — **no** material del estudiante |
+| `EPCC_EXPLORE/PLAN/COMMIT.md` | bitácora del ciclo Explore-Plan-Code-Commit; son snapshots fechados, no docs vivas |
+| `SESSION-PLAN.md`, `CAPSTONE_OVERVIEW.md`, `QUICKSTART.md` | plan de las 12 sesiones, visión general y arranque rápido |
+
+## Session Logging
+
+**Protocolo de registro de sesiones:** cada sesión de trabajo genera un registro timestamped en `SESSION_LOG.md` con:
+
+1. **Encabezado de sesión:** fecha, hora de inicio–fin (UTC), contexto
+2. **Estado Inicial:** qué encontró Claude al comenzar
+3. **Operaciones Realizadas:** cada paso numerado con formato `[HH:MM] descripción → resultado (✅/❌)`
+4. **Causa Raíz:** para errores diagnosticados
+5. **Archivos Modificados:** lista completa de qué cambió y en qué líneas
+6. **Validaciones Completadas:** qué se verificó antes de dar por cerrada la sesión
+7. **Status Final:** ✅ completo, 🟡 en progreso, ❌ bloqueado + qué falta
+
+**Regla de cierre:** cuando el usuario escriba "cerrar sesión" o similar, Claude:
+- Agrega timestamps precisos (fecha ISO 8601, hora UTC)
+- Resume cambios netos en el codebase
+- Anota el siguiente paso esperado
+- **No borra ni comprime** logs anteriores — los nuevos se agregan al final
+
+Esto permite auditar decisiones de arquitectura y retrasar problemas sin contexto perdido.
 
 ## Gotchas conocidos
 

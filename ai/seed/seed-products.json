@@ -4,7 +4,7 @@
     "description": "Vestido midi de gasa con estampado floral, manga corta.",
     "price": 59.9,
     "category": "Vestidos",
-    "imageUrl": "REEMPLAZAR_CON_TU_IMAGEN: s3://<stack>-frontend/assets/vestido-floral.jpg",
+    "imageUrl": "https://t3.ftcdn.net/jpg/12/12/92/70/360_F_1212927000_vRzlEZaNCrJNIyhTkUC7pDEm3Q5u18jY.jpg",
     "reviews": [
       "Me encantó la tela y el corte, llegó muy rápido. Lo volvería a comprar.",
       "La talla es más pequeña de lo esperado y el color se ve distinto a la foto."
@@ -16,7 +16,7 @@
     "description": "Chaqueta denim oversize, lavado claro, bolsillos frontales.",
     "price": 89.0,
     "category": "Chaquetas",
-    "imageUrl": "REEMPLAZAR_CON_TU_IMAGEN: s3://<stack>-frontend/assets/chaqueta-denim.jpg",
+    "imageUrl": "https://m.media-amazon.com/images/I/517x-fe7x7L._AC_SY1000_.jpg",
     "reviews": [
       "Excelente calidad, el denim es grueso y abriga. Súper recomendada.",
       "Buena chaqueta pero el envío tardó tres semanas en llegar."
@@ -28,7 +28,7 @@
     "description": "Sneakers de cuero sintético blanco, suela de goma.",
     "price": 74.5,
     "category": "Calzado",
-    "imageUrl": "REEMPLAZAR_CON_TU_IMAGEN: s3://<stack>-frontend/assets/tenis-blancos.jpg",
+    "imageUrl": "https://dcshoes.mx/cdn/shop/files/DC01664_dcshoes_102_frt1.jpg?v=1775585614&width=493",
     "reviews": [
       "Comodísimos y combinan con todo. Muy contento con la compra.",
       "Se ensucian fácil pero por el precio están bien."
@@ -40,7 +40,7 @@
     "description": "Bolso tote de lona resistente, asas largas, color arena.",
     "price": 39.99,
     "category": "Accesorios",
-    "imageUrl": "REEMPLAZAR_CON_TU_IMAGEN: s3://<stack>-frontend/assets/bolso-tote.jpg",
+    "imageUrl": "https://resources.claroshop.com/medios-plazavip/t1/17168474877jpg",
     "reviews": [
       "Espacioso y bonito, ideal para el día a día.",
       "La costura del asa se descosió a la semana, decepcionante."
