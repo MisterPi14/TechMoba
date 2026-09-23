@@ -128,12 +128,18 @@ def lambda_handler(event, context):
         products = _retrieve(message, TOP_K)
         context_block = _format_context(products)
         messages = _build_messages(history, message, context_block)
-        resp = bedrock.converse(
-            modelId=CHAT_MODEL_ID,
-            system=[{"text": SYSTEM_PROMPT}],
-            messages=messages,
-            inferenceConfig={"maxTokens": MAX_TOKENS, "temperature": 0.5},
-        )
+
+        GUARDRAIL_ID = os.environ.get("BEDROCK_GUARDRAIL_ID")
+        GUARDRAIL_VER = os.environ.get("BEDROCK_GUARDRAIL_VERSION", "DRAFT")
+
+        kwargs = {"modelId": CHAT_MODEL_ID, "system": [{"text": SYSTEM_PROMPT}], "messages": messages,
+                "inferenceConfig": {"maxTokens": MAX_TOKENS, "temperature": 0.5}}
+        if GUARDRAIL_ID:
+            kwargs["guardrailConfig"] = {
+                "guardrailIdentifier": GUARDRAIL_ID,
+                "guardrailVersion": GUARDRAIL_VER,
+            }
+        resp = bedrock.converse(**kwargs)
         reply = resp["output"]["message"]["content"][0]["text"].strip()
         usage = resp.get("usage", {})
     except Exception as e:  # noqa: BLE001

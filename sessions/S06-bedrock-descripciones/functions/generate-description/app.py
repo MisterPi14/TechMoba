@@ -105,11 +105,19 @@ def lambda_handler(event, context):
     prompt = _build_prompt(item, tone)
 
     try:
-        resp = bedrock.converse(
-            modelId=MODEL_ID,
-            messages=[{"role": "user", "content": [{"text": prompt}]}],
-            inferenceConfig={"maxTokens": MAX_TOKENS, "temperature": TEMPERATURE},
-        )
+        GUARDRAIL_ID = os.environ.get("BEDROCK_GUARDRAIL_ID")
+        GUARDRAIL_VER = os.environ.get("BEDROCK_GUARDRAIL_VERSION", "DRAFT")
+
+        messages=[{"role": "user", "content": [{"text": prompt}]}]
+
+        kwargs = {"modelId": MODEL_ID, "messages": messages,
+                "inferenceConfig": {"maxTokens": MAX_TOKENS, "temperature": TEMPERATURE}}
+        if GUARDRAIL_ID:
+            kwargs["guardrailConfig"] = {
+                "guardrailIdentifier": GUARDRAIL_ID,
+                "guardrailVersion": GUARDRAIL_VER,
+            }
+        resp = bedrock.converse(**kwargs)
         text = resp["output"]["message"]["content"][0]["text"].strip()
         usage = resp.get("usage", {})
     except Exception as e:  # noqa: BLE001

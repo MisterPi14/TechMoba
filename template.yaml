@@ -30,6 +30,10 @@ Globals:
     Environment:
       Variables:
         PRODUCTS_TABLE: !Ref ProductsTable
+    Tags:
+      Project: techmoda-ai-diego-pina-capstone
+      Module: ai-practitioner
+      Environment: sandbox
 
 Resources:
   # DynamoDB Table
@@ -300,10 +304,14 @@ Resources:
               Resource:
                 - !Sub arn:${AWS::Partition}:bedrock:*::foundation-model/*
                 - !Sub arn:${AWS::Partition}:bedrock:*:${AWS::AccountId}:inference-profile/*
+            - Effect: Allow
+              Action: bedrock:ApplyGuardrail
+              Resource: !Sub arn:${AWS::Partition}:bedrock:us-east-1:${AWS::AccountId}:guardrail/*
       Timeout: 60   # los modelos generativos pueden tardar varios segundos
       Environment:
         Variables:
           BEDROCK_MODEL_ID: us.anthropic.claude-haiku-4-5-20251001-v1:0
+          BEDROCK_GUARDRAIL_ID: w6aeof348kpe
           BEDROCK_MAX_TOKENS: "300"
           BEDROCK_TEMPERATURE: "0.7"
       FunctionUrlConfig:
@@ -391,6 +399,9 @@ Resources:
               Resource:
                 - !Sub arn:${AWS::Partition}:bedrock:*::foundation-model/*
                 - !Sub arn:${AWS::Partition}:bedrock:*:${AWS::AccountId}:inference-profile/*
+            - Effect: Allow
+              Action: bedrock:ApplyGuardrail
+              Resource: !Sub arn:${AWS::Partition}:bedrock:us-east-1:${AWS::AccountId}:guardrail/*
       Timeout: 60
       Environment:
         Variables:
@@ -398,6 +409,7 @@ Resources:
           # Haiku 4.5 no admite on-demand: hay que usar el perfil de inferencia
           # cross-region (prefijo "us."), ya cubierto por el ARN inference-profile/* de arriba.
           BEDROCK_MODEL_ID: us.anthropic.claude-haiku-4-5-20251001-v1:0
+          BEDROCK_GUARDRAIL_ID: w6aeof348kpe
           ASSISTANT_TOP_K: "3"
           BEDROCK_MAX_TOKENS: "400"
       FunctionUrlConfig:
@@ -406,6 +418,28 @@ Resources:
           AllowOrigins: [ "*" ]
           AllowMethods: [ "*" ]
           AllowHeaders: [ "*" ]
+  AiCostAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ${AWS::StackName}-estimated-charges
+      AlarmDescription: Alerta si el cargo estimado de la cuenta supera el umbral.
+      Namespace: AWS/Billing
+      MetricName: EstimatedCharges
+      Dimensions:
+        - Name: Currency
+          Value: USD
+      Statistic: Maximum
+      Period: 21600          # 6 h
+      EvaluationPeriods: 1
+      Threshold: 5           # USD — ajustar al presupuesto de práctica del sandbox
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  BedrockInvocationLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /techmoda/${AWS::StackName}/bedrock-invocations
+      RetentionInDays: 30    # FinOps: no retener logs para siempre
 
 Outputs:
   ApiUrl:
