@@ -32,3 +32,29 @@ export interface Product {
   aiDescription?: string;           // S6 · Bedrock
   aiEmbedding?: number[];           // S7 · Bedrock embeddings
 }
+
+/**
+ * S8 · Un turno del hilo de conversación con el asistente de compras.
+ *
+ * IMPORTANTE: `text` guarda el mensaje LIMPIO del usuario, nunca el texto
+ * aumentado con el bloque "CATÁLOGO RELEVANTE" que la Lambda arma internamente.
+ * Si se reenviara el texto aumentado, cada turno arrastraría un catálogo viejo:
+ * los `inputTokens` crecen de forma cuadrática y el modelo ve precios obsoletos.
+ * El nombre del campo (`text`, no `content`) es el que espera app.py.
+ */
+export interface ChatTurn {
+  role: 'user' | 'assistant';
+  text: string;
+}
+
+/** S8 · Respuesta de POST /assistant (shopping-assistant/app.py). */
+export interface AssistantReply {
+  reply: string;
+  retrieved: { productId: string; name: string }[];
+  model: string;
+  usage?: {
+    inputTokens?: number;
+    outputTokens?: number;
+    totalTokens?: number;
+  };
+}

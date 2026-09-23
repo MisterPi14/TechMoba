@@ -182,6 +182,29 @@ requisito externo es habilitar **Bedrock → Model access** en la consola, en la
 (es un setting por región), para S06–S09. Si S06–S09 dan `AccessDeniedException`, ese es el primer
 sospechoso, no las políticas IAM.
 
+## ⛔ NUNCA editar los archivos de `sessions/SNN-*/`
+
+**Todo lo que vive bajo `sessions/S00-…` … `sessions/S11-…` es material de sesión intocable.** No
+editar, no "arreglar", no reformatear — ni `GUIA.md`, ni `functions/**/app.py`, ni
+`template-snippet.yaml`, ni `terminal.md`, ni las bitácoras. Aplica incluso cuando el cambio parece una
+mejora obvia o un bug real.
+
+Cada sesión es el guion de una clase de ~1 h: el estudiante la sigue paso a paso y el instructor la
+dicta. Un cambio ahí desincroniza la guía respecto de lo que el alumno ve en pantalla, y los
+`app.py` de sesión son además el material que se lee en voz alta.
+
+**Qué hacer en vez de editar:**
+
+| Si encontrás… | Hacé |
+|---|---|
+| Un bug en un `app.py` de sesión | Reportalo y resolvelo **fuera** de `sessions/` (p. ej. en el cliente que la consume) |
+| Algo que falta en una `GUIA.md` | Decirlo en la respuesta; que la persona decida |
+| Un comportamiento que querés cambiar | Tocar `frontend/`, `functions/`, `scripts/`, `docs/` o los `template*.yaml` de la raíz |
+
+Los templates de la **raíz** (`template.yaml`, `template.sandbox.yaml`, `template.full.yaml`) **sí** se
+pueden editar — no están bajo `sessions/`. Pero no agregues ahí config que solo tendría efecto si además
+cambiaras un `app.py` de sesión: quedaría muerta.
+
 ## Al agregar una sesión o función
 
 Checklist en `docs/IAM.md`. En resumen:

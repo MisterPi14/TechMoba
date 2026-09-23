@@ -208,4 +208,108 @@ describe('API Module', () => {
       );
     });
   });
+
+  // ---- S8 · Asistente de compras (RAG) ----
+  describe('askAssistant', () => {
+    const mockReply = {
+      reply: 'Te recomiendo los Tenis blancos minimalistas ($74.50).',
+      retrieved: [{ productId: 'p1', name: 'Tenis blancos minimalistas' }],
+      model: 'anthropic.claude-haiku-4-5-20251001-v1:0',
+      usage: { inputTokens: 210, outputTokens: 58, totalTokens: 268 },
+    };
+
+    it('posts to the assistant Function URL, not the router URL', async () => {
+      const mockFetch = vi.fn().mockResolvedValueOnce({ ok: true, json: async () => mockReply });
+      globalThis.fetch = mockFetch;
+
+      await api.askAssistant('algo para caminar');
+
+      // Se normaliza el slash final y usa la URL PROPIA del asistente.
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://test-assistant.lambda-url.us-east-1.on.aws/assistant',
+        expect.objectContaining({ method: 'POST' })
+      );
+    });
+
+    it('sends message and history in the body', async () => {
+      const mockFetch = vi.fn().mockResolvedValueOnce({ ok: true, json: async () => mockReply });
+      globalThis.fetch = mockFetch;
+
+      const history = [
+        { role: 'user' as const, text: 'hola' },
+        { role: 'assistant' as const, text: 'buenas' },
+      ];
+      await api.askAssistant('y algo abrigado?', history);
+
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(body).toEqual({ message: 'y algo abrigado?', history });
+    });
+
+    it('defaults history to an empty array', async () => {
+      const mockFetch = vi.fn().mockResolvedValueOnce({ ok: true, json: async () => mockReply });
+      globalThis.fetch = mockFetch;
+
+      await api.askAssistant('primer turno');
+
+      expect(JSON.parse(mockFetch.mock.calls[0][1].body).history).toEqual([]);
+    });
+
+    it('returns reply, retrieved and usage', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValueOnce({ ok: true, json: async () => mockReply });
+
+      const result = await api.askAssistant('hola');
+
+      expect(result).toEqual(mockReply);
+    });
+
+    it('surfaces the backend hint when the call fails', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValueOnce({
+        ok: false,
+        status: 502,
+        statusText: 'Bad Gateway',
+        json: async () => ({
+          error: 'Fallo del asistente',
+          detail: 'AccessDeniedException',
+          hint: '¿Habilitaste los modelos en Bedrock y corriste POST /search/index (S7)?',
+        }),
+      });
+
+      await expect(api.askAssistant('hola')).rejects.toThrow(
+        /Fallo del asistente — ¿Habilitaste los modelos en Bedrock/
+      );
+    });
+
+    it('falls back to the status when the error body is not JSON', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        json: async () => {
+          throw new Error('not json');
+        },
+      });
+
+      await expect(api.askAssistant('hola')).rejects.toThrow(
+        'Error 500: Internal Server Error'
+      );
+    });
+
+    it('assistantEnabled is true when VITE_ASSISTANT_URL is configured', () => {
+      expect(api.assistantEnabled()).toBe(true);
+    });
+
+    it('assistantEnabled is false and askAssistant throws when S8 is not deployed', async () => {
+      // La URL se lee al cargar el módulo -> hay que recargarlo sin la variable.
+      const saved = window.__ENV?.VITE_ASSISTANT_URL;
+      window.__ENV = { ...window.__ENV, VITE_ASSISTANT_URL: '' };
+      vi.resetModules();
+
+      const { api: freshApi } = await import('./api');
+      expect(freshApi.assistantEnabled()).toBe(false);
+      await expect(freshApi.askAssistant('hola')).rejects.toThrow(/VITE_ASSISTANT_URL/);
+
+      window.__ENV = { ...window.__ENV, VITE_ASSISTANT_URL: saved };
+      vi.resetModules();
+    });
+  });
 });

@@ -13,13 +13,15 @@ usage() {
     echo "Inject runtime environment configuration into frontend build"
     echo ""
     echo "Options:"
-    echo "  -a, --api-url URL      API Gateway URL (required)"
-    echo "  -d, --dist-dir DIR     Distribution directory (default: frontend/dist)"
-    echo "  -h, --help             Show this help message"
+    echo "  -a, --api-url URL        API Gateway URL (required)"
+    echo "  -s, --assistant-url URL  S8 Shopping Assistant Function URL (optional)"
+    echo "  -d, --dist-dir DIR       Distribution directory (default: frontend/dist)"
+    echo "  -h, --help               Show this help message"
     echo ""
     echo "Examples:"
     echo "  $0 --api-url https://abc123.lambda-url.us-east-1.on.aws"
     echo "  $0 -a https://abc123.lambda-url.us-east-1.on.aws -d ./dist"
+    echo "  $0 -a https://abc.lambda-url.us-east-1.on.aws -s https://xyz.lambda-url.us-east-1.on.aws"
     echo ""
     exit 1
 }
@@ -27,12 +29,18 @@ usage() {
 # Default values
 DIST_DIR="frontend/dist"
 API_URL=""
+# S8 opcional: si queda vacío, el frontend no monta el chat del asistente.
+ASSISTANT_URL=""
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
         -a|--api-url)
             API_URL="$2"
+            shift 2
+            ;;
+        -s|--assistant-url)
+            ASSISTANT_URL="$2"
             shift 2
             ;;
         -d|--dist-dir)
@@ -60,6 +68,14 @@ fi
 # dobles slash en el frontend (${API_URL}/products).
 API_URL="${API_URL%/}"
 
+# Mismo trato para la URL del asistente (S8). Vacía es válido: significa "S8 no
+# desplegado". "None" es lo que imprime `aws ... --output text` cuando el output
+# no existe en el stack -> lo tratamos como vacío.
+if [ "$ASSISTANT_URL" = "None" ]; then
+    ASSISTANT_URL=""
+fi
+ASSISTANT_URL="${ASSISTANT_URL%/}"
+
 # Validate dist directory exists
 if [ ! -d "$DIST_DIR" ]; then
     echo "❌ Error: Distribution directory not found: $DIST_DIR"
@@ -83,15 +99,18 @@ echo "  Runtime Environment Injection"
 echo "=========================================="
 echo ""
 echo "📋 Configuration:"
-echo "   API URL:  $API_URL"
-echo "   Dist dir: $DIST_DIR"
+echo "   API URL:        $API_URL"
+echo "   Assistant URL:  ${ASSISTANT_URL:-(S8 no desplegado — el chat no se monta)}"
+echo "   Dist dir:       $DIST_DIR"
 echo ""
 
 # Generate env-config.js from template
 OUTPUT_FILE="$DIST_DIR/env-config.js"
 
 echo "🔧 Generating runtime configuration..."
-sed "s|%%VITE_API_URL%%|$API_URL|g" "$TEMPLATE_FILE" > "$OUTPUT_FILE"
+sed -e "s|%%VITE_API_URL%%|$API_URL|g" \
+    -e "s|%%VITE_ASSISTANT_URL%%|$ASSISTANT_URL|g" \
+    "$TEMPLATE_FILE" > "$OUTPUT_FILE"
 
 # Verify the file was created
 if [ ! -f "$OUTPUT_FILE" ]; then

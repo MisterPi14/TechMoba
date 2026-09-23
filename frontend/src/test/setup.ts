@@ -12,7 +12,10 @@ afterEach(() => {
 // para ejercitar la normalización que hace api.ts (quita el slash final).
 globalThis.window = globalThis.window || ({} as Window & typeof globalThis);
 window.__ENV = {
-  VITE_API_URL: 'https://test-api.lambda-url.us-east-1.on.aws/'
+  VITE_API_URL: 'https://test-api.lambda-url.us-east-1.on.aws/',
+  // S8 · El asistente tiene su PROPIA Function URL (distinta de la del router).
+  // También con slash final, para ejercitar la misma normalización.
+  VITE_ASSISTANT_URL: 'https://test-assistant.lambda-url.us-east-1.on.aws/'
 };
 
 // Mock fetch globally

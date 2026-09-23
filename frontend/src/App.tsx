@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Store, Settings, Search, Plus, Loader2 } from 'lucide-react';
 import { ProductCard } from './components/ProductCard';
 import { ProductModal } from './components/ProductModal';
+import { ChatAssistant } from './components/ChatAssistant';
 import { useProducts } from './hooks/useProducts';
+import { api } from './lib/api';
 import type { Product } from './lib/types';
 
 function App() {
@@ -50,8 +52,12 @@ function App() {
   };
 
   const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchTerm.toLowerCase());
+    // name/description pueden faltar: las Lambdas de IA hacen update_item sobre un
+    // productId, y un id inexistente (p.ej. el placeholder PRODUCT_ID de una GUIA.md)
+    // crea un item parcial. Sin los ?? '' el render entero cae con TypeError.
+    const term = searchTerm.toLowerCase();
+    const matchesSearch = (product.name ?? '').toLowerCase().includes(term) ||
+      (product.description ?? '').toLowerCase().includes(term);
     const matchesCategory = categoryFilter === 'Todos' || product.category === categoryFilter;
     return matchesSearch && matchesCategory;
   });
@@ -164,6 +170,10 @@ function App() {
         onSave={handleSaveProduct}
         product={editingProduct}
       />
+
+      {/* S8 · El chat solo se monta si la Function URL del asistente está
+          configurada (VITE_ASSISTANT_URL). Sin S8 desplegado, no aparece. */}
+      {api.assistantEnabled() && <ChatAssistant />}
 
       <footer className="bg-white border-t mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

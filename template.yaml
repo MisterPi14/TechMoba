@@ -395,7 +395,9 @@ Resources:
       Environment:
         Variables:
           EMBED_MODEL_ID: amazon.titan-embed-text-v2:0
-          BEDROCK_MODEL_ID: anthropic.claude-haiku-4-5-20251001-v1:0
+          # Haiku 4.5 no admite on-demand: hay que usar el perfil de inferencia
+          # cross-region (prefijo "us."), ya cubierto por el ARN inference-profile/* de arriba.
+          BEDROCK_MODEL_ID: us.anthropic.claude-haiku-4-5-20251001-v1:0
           ASSISTANT_TOP_K: "3"
           BEDROCK_MAX_TOKENS: "400"
       FunctionUrlConfig:
