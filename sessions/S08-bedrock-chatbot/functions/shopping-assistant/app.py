@@ -40,14 +40,22 @@ SYSTEM_PROMPT = (
 bedrock = boto3.client("bedrock-runtime")
 table = boto3.resource("dynamodb").Table(PRODUCTS_TABLE)
 
-
+""" ANTERIORMENTE CONFLICTO DE CORS CON EL TEMPLATE.yaml
 def _response(status, body):
     return {
         "statusCode": status,
         "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
         "body": json.dumps(body, ensure_ascii=False),
     }
-
+"""
+def _response(status, body):
+    return {
+        "statusCode": status,
+        "headers": {
+            "Content-Type": "application/json"
+        },
+        "body": json.dumps(body, ensure_ascii=False),
+    }
 
 def _embed(text):
     resp = bedrock.invoke_model(

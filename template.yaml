@@ -112,7 +112,7 @@ Resources:
   FrontendBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub ${AWS::StackName}-diego-pina-frontend-${AWS::AccountId}
+      BucketName: !Sub ${AWS::StackName}-frontend
       WebsiteConfiguration:
         IndexDocument: index.html
         ErrorDocument: index.html
@@ -312,6 +312,7 @@ Resources:
         Variables:
           BEDROCK_MODEL_ID: us.anthropic.claude-haiku-4-5-20251001-v1:0
           BEDROCK_GUARDRAIL_ID: w6aeof348kpe
+          BEDROCK_GUARDRAIL_VERSION: "2"
           BEDROCK_MAX_TOKENS: "300"
           BEDROCK_TEMPERATURE: "0.7"
       FunctionUrlConfig:
@@ -410,6 +411,7 @@ Resources:
           # cross-region (prefijo "us."), ya cubierto por el ARN inference-profile/* de arriba.
           BEDROCK_MODEL_ID: us.anthropic.claude-haiku-4-5-20251001-v1:0
           BEDROCK_GUARDRAIL_ID: w6aeof348kpe
+          BEDROCK_GUARDRAIL_VERSION: "2"
           ASSISTANT_TOP_K: "3"
           BEDROCK_MAX_TOKENS: "400"
       FunctionUrlConfig:

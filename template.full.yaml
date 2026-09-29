@@ -333,9 +333,12 @@ Resources:
       FunctionUrlConfig:
         AuthType: NONE
         Cors:
-          AllowOrigins: [ "*" ]
-          AllowMethods: [ "*" ]
-          AllowHeaders: [ "*" ]
+          AllowOrigins:
+            - "*"
+          AllowMethods:
+            - "*"
+          AllowHeaders:
+            - "*"
 
   # ---- S10 · gobernanza (log group de invocacion) ----
   # La alarma de billing no la crea este stack -> ver sessions/S10-*/GUIA.md.
